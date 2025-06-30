@@ -1,0 +1,95 @@
+version: '3.9'
+
+services:
+  # --- Databases ---
+  auth_db:
+    image: postgres:13
+    container_name: auth_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password456
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata/auth:/var/lib/postgresql/data
+
+  class_session_db:
+    image: postgres:13
+    container_name: class_session_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password456
+      POSTGRES_DB: class_session_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./pgdata/class_session:/var/lib/postgresql/data
+
+  attendance_db:
+    image: postgres:13
+    container_name: attendance_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password456
+      POSTGRES_DB: attendance_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./pgdata/attendance:/var/lib/postgresql/data
+
+  # --- Microservices ---
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    depends_on:
+      - auth_db
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://postgres:password456@auth_db:5432/auth_db
+
+  class_session_service:
+    build: ./class_session_service
+    container_name: class_session_service
+    depends_on:
+      - class_session_db
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgresql://postgres:password456@class_session_db:5432/class_session_db
+
+  attendance_service:
+    build: ./attendance_service
+    container_name: attendance_service
+    depends_on:
+      - attendance_db
+      - facial_recognition_service
+      - geolocation_service
+    ports:
+      - "8004:8004"
+    environment:
+      DATABASE_URL: postgresql://postgres:password456@attendance_db:5432/attendance_db
+      FACE_SERVICE_URL: http://facial_recognition_service:8001
+      GEO_SERVICE_URL: http://geolocation_service:8002
+
+  facial_recognition_service:
+    build: ./fcr_service
+    container_name: facial_recognition_service
+    ports:
+      - "8001:8001"
+
+  geolocation_service:
+    build: ./geolocation_service
+    container_name: geolocation_service
+    ports:
+      - "8002:8002"
+
+
+# to run use : docker-compose up --build -d, navigate to the backend folder first
+#for more precise error logging use docker compose --verbose up --build
+
+  

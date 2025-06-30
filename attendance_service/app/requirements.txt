@@ -1,0 +1,7 @@
+httpx
+sqlalchemy
+fastapi
+uvicorn[standard]
+uuid
+datetime
+psycopg2

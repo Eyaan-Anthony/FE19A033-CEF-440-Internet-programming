@@ -1,0 +1,7 @@
+pillow
+torch
+uvicorn
+numpy
+fastapi
+facenet-pytorch
+-f https://download.pytorch.org/whl/torch_stable.html
